@@ -23,7 +23,7 @@
   <parent>
     <artifactId>maven-shared-components</artifactId>
     <groupId>org.apache.maven.shared</groupId>
-    <version>33</version>
+    <version>34</version>
     <relativePath />
   </parent>
 
