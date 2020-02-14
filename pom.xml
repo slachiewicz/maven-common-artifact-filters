@@ -24,7 +24,7 @@
     <artifactId>maven-shared-components</artifactId>
     <groupId>org.apache.maven.shared</groupId>
     <version>33</version>
-    <relativePath />
+    <relativePath/>
   </parent>
 
   <artifactId>maven-common-artifact-filters</artifactId>
@@ -127,7 +127,7 @@
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
       <artifactId>maven-shared-utils</artifactId>
-      <version>3.1.0</version>
+      <version>3.2.1</version>
     </dependency>
 
     <dependency>
