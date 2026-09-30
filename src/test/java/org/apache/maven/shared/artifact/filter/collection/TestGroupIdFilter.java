@@ -21,8 +21,8 @@ package org.apache.maven.shared.artifact.filter.collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.testing.ArtifactStubFactory;
+import org.apache.maven.api.Dependency;
+import org.apache.maven.shared.artifact.filter.DependencyStubs;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,8 +37,7 @@ class TestGroupIdFilter extends AbstractArtifactFeatureFilterTest {
     @BeforeEach
     void setUp() throws Exception {
         filterClass = GroupIdFilter.class;
-        ArtifactStubFactory factory = new ArtifactStubFactory(null, false);
-        artifacts = factory.getGroupIdArtifacts();
+        artifacts = DependencyStubs.groupIdDependencies();
     }
 
     @Test
@@ -48,8 +47,8 @@ class TestGroupIdFilter extends AbstractArtifactFeatureFilterTest {
 
     @Test
     public void checkFiltering() throws Exception {
-        Set<Artifact> result = filtering();
-        for (Artifact artifact : result) {
+        Set<Dependency> result = filtering();
+        for (Dependency artifact : result) {
             assertTrue(
                     artifact.getGroupId().equals("one") || artifact.getGroupId().equals("two"));
         }
@@ -57,8 +56,8 @@ class TestGroupIdFilter extends AbstractArtifactFeatureFilterTest {
 
     @Test
     public void checkFiltering2() throws Exception {
-        Set<Artifact> result = filtering2();
-        for (Artifact artifact : result) {
+        Set<Dependency> result = filtering2();
+        for (Dependency artifact : result) {
             assertTrue(
                     artifact.getGroupId().equals("two") || artifact.getGroupId().equals("four"));
         }
@@ -72,11 +71,11 @@ class TestGroupIdFilter extends AbstractArtifactFeatureFilterTest {
     @Test
     void chckFiltering4() throws Exception {
         // include o* from groupIds one,two should leave one
-        Set<Artifact> result = filtering();
+        Set<Dependency> result = filtering();
         assertEquals(1, result.size());
         GroupIdFilter filter = new GroupIdFilter("o", null);
         result = filter.filter(result);
-        for (Artifact artifact : result) {
+        for (Dependency artifact : result) {
             assertEquals("one", artifact.getGroupId());
         }
 
@@ -85,7 +84,7 @@ class TestGroupIdFilter extends AbstractArtifactFeatureFilterTest {
         assertEquals(1, result.size());
         filter = new GroupIdFilter(null, "on");
         result = filter.filter(result);
-        for (Artifact artifact : result) {
+        for (Dependency artifact : result) {
             assertEquals("two", artifact.getGroupId());
         }
     }
@@ -96,7 +95,7 @@ class TestGroupIdFilter extends AbstractArtifactFeatureFilterTest {
 
         assertEquals(4, artifacts.size());
 
-        Set<Artifact> result = filter.filter(artifacts);
+        Set<Dependency> result = filter.filter(artifacts);
 
         assertEquals(2, result.size());
     }
@@ -107,25 +106,24 @@ class TestGroupIdFilter extends AbstractArtifactFeatureFilterTest {
 
         assertEquals(4, artifacts.size());
 
-        Set<Artifact> result = filter.filter(artifacts);
+        Set<Dependency> result = filter.filter(artifacts);
 
         assertEquals(2, result.size());
     }
 
     @Test
     void exactMatchIgnoresLongerGroupIds() throws Exception {
-        ArtifactStubFactory factory = new ArtifactStubFactory(null, false);
-        Set<Artifact> artifacts = new HashSet<>();
-        artifacts.add(factory.createArtifact("org.example", "a", "1.0"));
-        artifacts.add(factory.createArtifact("org.example.foo", "b", "1.0"));
+        Set<Dependency> artifacts = new HashSet<>();
+        artifacts.add(DependencyStubs.dependency("org.example", "a", "1.0", "compile"));
+        artifacts.add(DependencyStubs.dependency("org.example.foo", "b", "1.0", "compile"));
 
         assertEquals(2, new GroupIdFilter("org.example", null).filter(artifacts).size());
 
-        Set<Artifact> included = new GroupIdFilter("org.example", null, true).filter(artifacts);
+        Set<Dependency> included = new GroupIdFilter("org.example", null, true).filter(artifacts);
         assertEquals(1, included.size());
         assertEquals("org.example", included.iterator().next().getGroupId());
 
-        Set<Artifact> remaining = new GroupIdFilter(null, "org.example", true).filter(artifacts);
+        Set<Dependency> remaining = new GroupIdFilter(null, "org.example", true).filter(artifacts);
         assertEquals(1, remaining.size());
         assertEquals("org.example.foo", remaining.iterator().next().getGroupId());
     }

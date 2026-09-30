@@ -21,7 +21,7 @@ package org.apache.maven.shared.artifact.filter.collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.apache.maven.artifact.Artifact;
+import org.apache.maven.api.Dependency;
 
 /**
  * <p>ProjectTransitivityFilter class.</p>
@@ -32,7 +32,7 @@ public class ProjectTransitivityFilter extends AbstractArtifactsFilter {
 
     private boolean excludeTransitive;
 
-    private final Set<Artifact> directDependencies;
+    private final Set<Dependency> directDependencies;
 
     /**
      * <p>Constructor for ProjectTransitivityFilter.</p>
@@ -40,21 +40,21 @@ public class ProjectTransitivityFilter extends AbstractArtifactsFilter {
      * @param directDependencies set of direct dependencies.
      * @param excludeTransitive {@code true} exclude transitive deps {@code false} otherwise.
      */
-    public ProjectTransitivityFilter(Set<Artifact> directDependencies, boolean excludeTransitive) {
+    public ProjectTransitivityFilter(Set<Dependency> directDependencies, boolean excludeTransitive) {
         this.excludeTransitive = excludeTransitive;
         this.directDependencies = directDependencies;
     }
 
     /** {@inheritDoc} */
-    public Set<Artifact> filter(Set<Artifact> artifacts) {
+    public Set<Dependency> filter(Set<Dependency> artifacts) {
         // why not just take the directDependencies here?
         // because if this filter is run after some other process, the
         // set of artifacts may not be the same as the directDependencies.
-        Set<Artifact> result = artifacts;
+        Set<Dependency> result = artifacts;
 
         if (excludeTransitive) {
             result = new LinkedHashSet<>();
-            for (Artifact artifact : artifacts) {
+            for (Dependency artifact : artifacts) {
                 if (artifactIsADirectDependency(artifact)) {
                     result.add(artifact);
                 }
@@ -69,13 +69,30 @@ public class ProjectTransitivityFilter extends AbstractArtifactsFilter {
      * @param artifact representing the item to compare.
      * @return true if artifact is a direct dependency
      */
-    public boolean artifactIsADirectDependency(Artifact artifact) {
-        for (Artifact dependency : this.directDependencies) {
-            if (dependency.getId().equals(artifact.getId())) {
+    public boolean artifactIsADirectDependency(Dependency artifact) {
+        String id = idOf(artifact);
+        for (Dependency dependency : this.directDependencies) {
+            if (idOf(dependency).equals(id)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * The identity of a dependency for this comparison: its coordinates with the base version, so that a resolved
+     * timestamped SNAPSHOT matches the {@code -SNAPSHOT} version declared by the project.
+     */
+    private static String idOf(Dependency dependency) {
+        String classifier = dependency.getClassifier();
+        return dependency.getGroupId()
+                + ':'
+                + dependency.getArtifactId()
+                + ':'
+                + dependency.getExtension()
+                + (classifier == null || classifier.isEmpty() ? "" : ':' + classifier)
+                + ':'
+                + dependency.getBaseVersion();
     }
 
     /**
